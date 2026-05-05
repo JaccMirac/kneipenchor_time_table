@@ -1,13 +1,15 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { Image } from 'astro:assets';
-import logoImage from '../assets/kneipi_damour_transparent.png';
+import Layout from "../layouts/Layout.astro";
+import { Image } from "astro:assets";
+import logoImage from "../assets/kneipi_damour_transparent.png";
 
-const siteUrl = 'https://jaccmirac.github.io/kneipenchor_time_table/';
+const siteUrl = "https://jaccmirac.github.io/kneipenchor_time_table/";
 ---
 
 <Layout>
-  <div class="min-h-screen flex flex-col items-center justify-center px-6 py-12 gap-8">
+  <div
+    class="min-h-screen flex flex-col items-center justify-center px-6 py-12 gap-8"
+  >
     <Image
       src={logoImage}
       alt="Kneipenchor d'Amour"
@@ -38,23 +40,27 @@ const siteUrl = 'https://jaccmirac.github.io/kneipenchor_time_table/';
 </Layout>
 
 <script>
-  import QRCode from 'qrcode';
+  import QRCode from "qrcode";
 
-  const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+  const canvas = document.getElementById("qr-canvas") as HTMLCanvasElement;
 
-  QRCode.toCanvas(canvas, 'https://jaccmirac.github.io/kneipenchor_time_table/', {
-    width: 320,
-    margin: 2,
-    color: {
-      dark: '#111827',
-      light: '#ffffff',
+  QRCode.toCanvas(
+    canvas,
+    "https://jaccmirac.github.io/kneipenchor_time_table/",
+    {
+      width: 320,
+      margin: 2,
+      color: {
+        dark: "#111827",
+        light: "#ffffff",
+      },
     },
-  });
+  );
 
-  document.getElementById('download-btn')?.addEventListener('click', () => {
-    const link = document.createElement('a');
-    link.download = 'kneipenchor-qr.png';
-    link.href = canvas.toDataURL('image/png');
+  document.getElementById("download-btn")?.addEventListener("click", () => {
+    const link = document.createElement("a");
+    link.download = "kneipenchor-qr.png";
+    link.href = canvas.toDataURL("image/png");
     link.click();
   });
 </script>
