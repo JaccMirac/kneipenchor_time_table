@@ -2,6 +2,7 @@
 import "../styles/global.css";
 
 const baseUrl = import.meta.env.BASE_URL;
+const basePath = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
 ---
 
 <!doctype html>
@@ -22,11 +23,12 @@ const baseUrl = import.meta.env.BASE_URL;
       <div
         class="max-w-5xl mx-auto flex items-center justify-center gap-6 text-sm text-gray-700"
       >
-        <a href={`${baseUrl}impressum`} class="hover:text-gray-900 underline"
+        <a href={`${basePath}impressum/`} class="hover:text-gray-900 underline"
           >Impressum</a
         >
-        <a href={`${baseUrl}datenschutz`} class="hover:text-gray-900 underline"
-          >Datenschutzerklärung</a
+        <a
+          href={`${basePath}datenschutz/`}
+          class="hover:text-gray-900 underline">Datenschutzerklärung</a
         >
       </div>
     </footer>
