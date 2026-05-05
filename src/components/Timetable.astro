@@ -102,8 +102,6 @@ const angelSrc = angelImage.src;
   function updateIndicator() {
     //mock 14:45
     const now = new Date();
-    now.setHours(14);
-    now.setMinutes(45);
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
     const rows = document.querySelectorAll<HTMLElement>("[data-time]");
