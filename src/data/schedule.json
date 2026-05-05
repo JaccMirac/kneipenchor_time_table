@@ -8,6 +8,10 @@
     "event": "Consectetur adipiscing elit"
   },
   {
+    "time": "13:30",
+    "event": "Consectetur adipiscing elit"
+  },
+  {
     "time": "14:30",
     "event": "Sed do eiusmod tempor incididunt",
     "subpoints": [
@@ -39,6 +43,14 @@
   },
   {
     "time": "19:00",
+    "event": "Deserunt mollit anim id est laborum"
+  },
+  {
+    "time": "19:30",
+    "event": "Deserunt mollit anim id est laborum"
+  },
+  {
+    "time": "20:00",
     "event": "Deserunt mollit anim id est laborum"
   }
 ]
