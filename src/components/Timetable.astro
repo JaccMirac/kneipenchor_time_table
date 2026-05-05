@@ -1,0 +1,138 @@
+---
+import { Image } from "astro:assets";
+import angelImage from "../assets/kneipi_engel_transparent.png";
+import logoImage from "../assets/kneipi_damour_transparent.png";
+
+interface TimeSlot {
+  time: string;
+  event: string;
+  subpoints?: string[];
+}
+
+const schedule: TimeSlot[] = [
+  { time: "10:00", event: "Lorem ipsum dolor sit amet" },
+  { time: "12:30", event: "Consectetur adipiscing elit" },
+  {
+    time: "14:30",
+    event: "Sed do eiusmod tempor incididunt",
+    subpoints: [
+      "Ut labore et dolore magna",
+      "Aliqua ut enim ad minim",
+      "Veniam quis nostrud?",
+    ],
+  },
+  {
+    time: "15:00",
+    event: "Exercitation ullamco laboris",
+    subpoints: [
+      "Nisi ut aliquip ex ea commodo",
+      "Consequat duis aute irure?",
+      "Dolor in reprehenderit",
+    ],
+  },
+  { time: "16:00", event: "Voluptate velit esse cillum?" },
+  {
+    time: "16:15",
+    event: "Excepteur sint occaecat cupidatat non proident",
+  },
+  { time: "18:00", event: "Sunt in culpa qui officia" },
+  { time: "19:00", event: "Deserunt mollit anim id est laborum" },
+];
+
+const angelSrc = angelImage.src;
+---
+
+<div class="w-full px-4 sm:px-6 lg:px-8 py-10 max-w-5xl mx-auto">
+  <div class="flex justify-center mb-8">
+    <Image
+      src={logoImage}
+      alt="Kneipenchor d'Amour"
+      class="w-full max-w-xl sm:max-w-2xl h-auto"
+    />
+  </div>
+
+  <div class="flex flex-col">
+    {
+      schedule.map((slot) => (
+        <div
+          data-time={slot.time}
+          class="flex items-center gap-4 sm:gap-8 border-b border-gray-200 hover:bg-gray-50 transition-colors py-5 sm:py-7"
+        >
+          {/* Left angel - mirrored */}
+          <div class="flex-shrink-0 w-16 sm:w-24 md:w-32 lg:w-36 flex justify-center">
+            <img
+              src={angelSrc}
+              alt=""
+              class="angel-left hidden w-full h-auto scale-x-[-1]"
+            />
+          </div>
+
+          {/* Time */}
+          <div class="flex-shrink-0 w-20 sm:w-24 font-semibold text-gray-900 text-xl sm:text-2xl lg:text-3xl text-right">
+            {slot.time}
+          </div>
+
+          {/* Event */}
+          <div class="flex-1 text-gray-700 text-lg sm:text-xl lg:text-2xl">
+            <div class="font-medium">{slot.event}</div>
+            {slot.subpoints && (
+              <ul class="text-sm sm:text-base lg:text-lg text-gray-500 space-y-1 mt-2 ml-4">
+                {slot.subpoints.map((point) => (
+                  <li class="list-disc">{point}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Right angel */}
+          <div class="flex-shrink-0 w-16 sm:w-24 md:w-32 lg:w-36 flex justify-center">
+            <img
+              src={angelSrc}
+              alt=""
+              class="angel-right hidden w-full h-auto"
+            />
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  function updateIndicator() {
+    //mock 14:45
+    const now = new Date();
+    now.setHours(14);
+    now.setMinutes(45);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const rows = document.querySelectorAll<HTMLElement>("[data-time]");
+    let activeRow: HTMLElement | null = null;
+
+    rows.forEach((row) => {
+      const [h, m] = row.dataset.time!.split(":").map(Number);
+      const rowMinutes = h * 60 + m;
+      if (rowMinutes <= currentMinutes) {
+        activeRow = row;
+      }
+    });
+
+    // Hide all indicators
+    document.querySelectorAll(".angel-left, .angel-right").forEach((el) => {
+      el.classList.add("hidden");
+    });
+
+    // Show both angels on active row
+    if (activeRow) {
+      (activeRow as HTMLElement)
+        .querySelector(".angel-left")
+        ?.classList.remove("hidden");
+      (activeRow as HTMLElement)
+        .querySelector(".angel-right")
+        ?.classList.remove("hidden");
+    }
+  }
+
+  updateIndicator();
+  setInterval(updateIndicator, 60_000);
+</script>
