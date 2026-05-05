@@ -1,0 +1,46 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import logoImage from '../assets/kneipi_damour_transparent.png';
+
+const siteUrl = 'https://jaccmirac.github.io/kneipenchor_time_table/';
+---
+
+<Layout>
+  <div class="min-h-screen flex flex-col items-center justify-center px-6 py-12 gap-8">
+    <Image
+      src={logoImage}
+      alt="Kneipenchor d'Amour"
+      class="w-64 sm:w-80 h-auto"
+    />
+
+    <canvas id="qr-canvas" class="rounded-xl shadow-lg"></canvas>
+
+    <p class="text-gray-500 text-sm text-center">
+      Scan to open the timetable:<br />
+      <a href={siteUrl} class="text-gray-800 underline break-all">{siteUrl}</a>
+    </p>
+
+    <button
+      onclick="window.print()"
+      class="px-6 py-3 bg-gray-900 text-white rounded-lg text-sm hover:bg-gray-700 transition-colors print:hidden"
+    >
+      Print / Save as PDF
+    </button>
+  </div>
+</Layout>
+
+<script>
+  import QRCode from 'qrcode';
+
+  const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+
+  QRCode.toCanvas(canvas, 'https://jaccmirac.github.io/kneipenchor_time_table/', {
+    width: 320,
+    margin: 2,
+    color: {
+      dark: '#111827',
+      light: '#ffffff',
+    },
+  });
+</script>
