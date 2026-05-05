@@ -1,0 +1,311 @@
+---
+import Layout from "../layouts/Layout.astro";
+import defaultSchedule from "../data/schedule.json";
+---
+
+<Layout>
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 py-10 text-gray-800">
+    <h1 class="text-3xl sm:text-4xl font-bold mb-4">Timetable Editor</h1>
+    <p class="text-sm sm:text-base text-gray-600 mb-6">
+      Ändere den Zeitplan und speichere direkt ins GitHub-Repo. Jeder Save
+      erstellt einen Commit und triggert den Pages-Deploy.
+    </p>
+
+    <div
+      id="editor-lock"
+      class="rounded-md border border-gray-300 bg-white p-5 sm:p-6 max-w-xl"
+    >
+      <p class="text-sm sm:text-base text-gray-700 mb-3">
+        Dieser Bereich ist passwortgeschützt.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input
+          id="password-input"
+          type="password"
+          placeholder="Passwort"
+          class="flex-1 rounded-md border border-gray-300 px-3 py-2"
+          autocomplete="off"
+        />
+        <button
+          id="unlock-btn"
+          class="px-4 py-2 rounded-md bg-gray-900 text-white hover:bg-gray-700 transition-colors"
+        >
+          Entsperren
+        </button>
+      </div>
+      <p id="lock-status" class="text-sm mt-3"></p>
+    </div>
+
+    <div id="editor-app" class="hidden">
+      <div class="rounded-md border border-gray-300 bg-white p-4 mb-4">
+        <h2 class="font-semibold mb-2">GitHub Zugang</h2>
+        <p class="text-xs sm:text-sm text-gray-600 mb-3">
+          Personal Access Token (classic oder fine-grained) mit
+          Repository-Write-Rechten. Token wird nur im aktuellen Browser-Tab
+          gehalten.
+        </p>
+        <input
+          id="github-token"
+          type="password"
+          placeholder="GitHub Token"
+          class="w-full rounded-md border border-gray-300 px-3 py-2"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="flex flex-wrap gap-3 mb-4">
+        <button
+          id="save-btn"
+          class="px-4 py-2 rounded-md bg-gray-900 text-white hover:bg-gray-700 transition-colors"
+        >
+          In GitHub speichern
+        </button>
+        <button
+          id="load-btn"
+          class="px-4 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-100 transition-colors"
+        >
+          Aus GitHub laden
+        </button>
+        <button
+          id="reset-btn"
+          class="px-4 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-100 transition-colors"
+        >
+          Auf Standard zurücksetzen
+        </button>
+        <a
+          href={import.meta.env.BASE_URL}
+          class="px-4 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-100 transition-colors"
+        >
+          Zur Timetable
+        </a>
+      </div>
+
+      <p id="status" class="text-sm mb-3"></p>
+
+      <textarea
+        id="json-editor"
+        class="w-full min-h-[24rem] sm:min-h-[30rem] rounded-md border border-gray-300 bg-white p-4 font-mono text-xs sm:text-sm leading-relaxed"
+        spellcheck="false"></textarea>
+
+      <p class="mt-4 text-xs sm:text-sm text-gray-500">
+        Format: Array aus Objekten mit <strong>time</strong>, <strong
+          >event</strong
+        > und optional <strong>subpoints</strong>.
+      </p>
+    </div>
+  </section>
+</Layout>
+
+<script
+  id="editor-default-schedule"
+  type="application/json"
+  set:html={JSON.stringify(defaultSchedule)}
+/>
+
+<script>
+  const EDITOR_PASSWORD = "CHANGE_ME_EDITOR_PASSWORD";
+  const SESSION_UNLOCK_KEY = "kneipenchor_editor_unlocked_v1";
+  const REPO_OWNER = "JaccMirac";
+  const REPO_NAME = "kneipenchor_time_table";
+  const REPO_BRANCH = "master";
+  const REPO_FILE_PATH = "src/data/schedule.json";
+
+  const lockView = document.getElementById("editor-lock");
+  const appView = document.getElementById("editor-app");
+  const lockStatus = document.getElementById("lock-status");
+  const passwordInput = document.getElementById("password-input");
+  const unlockBtn = document.getElementById("unlock-btn");
+  const tokenInput = document.getElementById("github-token");
+  const editor = document.getElementById("json-editor");
+  const status = document.getElementById("status");
+  const saveBtn = document.getElementById("save-btn");
+  const loadBtn = document.getElementById("load-btn");
+  const resetBtn = document.getElementById("reset-btn");
+  const defaultEl = document.getElementById("editor-default-schedule");
+
+  function showLockMessage(message, isError = true) {
+    if (!lockStatus) return;
+    lockStatus.textContent = message;
+    lockStatus.className = `text-sm mt-3 ${isError ? "text-red-600" : "text-green-700"}`;
+  }
+
+  function unlockEditor() {
+    lockView?.classList.add("hidden");
+    appView?.classList.remove("hidden");
+    fillEditor();
+  }
+
+  function setStatus(message, isError = false) {
+    if (!status) return;
+    status.textContent = message;
+    status.className = `text-sm mb-3 ${isError ? "text-red-600" : "text-green-700"}`;
+  }
+
+  function isValidSlot(slot) {
+    if (!slot || typeof slot !== "object") return false;
+    if (typeof slot.time !== "string" || typeof slot.event !== "string")
+      return false;
+    if (slot.subpoints && !Array.isArray(slot.subpoints)) return false;
+    return true;
+  }
+
+  function getDefaultSchedule() {
+    if (!defaultEl?.textContent) return [];
+    try {
+      const parsed = JSON.parse(defaultEl.textContent);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function fillEditor(data) {
+    if (!editor) return;
+    editor.value = JSON.stringify(data ?? getDefaultSchedule(), null, 2);
+  }
+
+  function getToken() {
+    const token = tokenInput?.value?.trim();
+    return token || "";
+  }
+
+  function toBase64Utf8(input) {
+    const bytes = new TextEncoder().encode(input);
+    let binary = "";
+    bytes.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+    return btoa(binary);
+  }
+
+  function getFileEndpoint() {
+    return `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${REPO_FILE_PATH}`;
+  }
+
+  async function fetchFileFromGitHub() {
+    const token = getToken();
+    if (!token) {
+      setStatus("Bitte zuerst GitHub Token eintragen.", true);
+      return null;
+    }
+
+    const response = await fetch(`${getFileEndpoint()}?ref=${REPO_BRANCH}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+      },
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(`GitHub load failed: ${response.status} ${message}`);
+    }
+
+    const file = await response.json();
+    const decoded = atob(file.content.replace(/\n/g, ""));
+    const jsonText = new TextDecoder().decode(
+      Uint8Array.from(decoded, (char) => char.charCodeAt(0)),
+    );
+
+    return {
+      sha: file.sha,
+      content: jsonText,
+    };
+  }
+
+  loadBtn?.addEventListener("click", async () => {
+    try {
+      setStatus("Lade aus GitHub …");
+      const file = await fetchFileFromGitHub();
+      if (!file) return;
+      const parsed = JSON.parse(file.content);
+      fillEditor(parsed);
+      setStatus("Aktuelle Datei aus GitHub geladen.");
+    } catch (error) {
+      setStatus(String(error), true);
+    }
+  });
+
+  saveBtn?.addEventListener("click", async () => {
+    if (!editor) return;
+
+    try {
+      const token = getToken();
+      if (!token) {
+        setStatus("Bitte zuerst GitHub Token eintragen.", true);
+        return;
+      }
+
+      const parsed = JSON.parse(editor.value);
+      if (!Array.isArray(parsed) || parsed.some((slot) => !isValidSlot(slot))) {
+        setStatus(
+          "Ungültiges Format: Bitte ein Array mit time/event und optional subpoints nutzen.",
+          true,
+        );
+        return;
+      }
+
+      setStatus("Speichere nach GitHub …");
+
+      const current = await fetchFileFromGitHub();
+      if (!current) return;
+
+      const content = `${JSON.stringify(parsed, null, 2)}\n`;
+      const response = await fetch(getFileEndpoint(), {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: `Update schedule via editor (${new Date().toISOString()})`,
+          content: toBase64Utf8(content),
+          sha: current.sha,
+          branch: REPO_BRANCH,
+        }),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(`GitHub save failed: ${response.status} ${message}`);
+      }
+
+      setStatus(
+        "Gespeichert. GitHub Pages deploy startet automatisch (ca. 1-2 Minuten).",
+      );
+    } catch {
+      setStatus("Speichern fehlgeschlagen. Token/Rechte/JSON prüfen.", true);
+    }
+  });
+
+  resetBtn?.addEventListener("click", () => {
+    fillEditor(getDefaultSchedule());
+    setStatus(
+      "Editor auf Standard gesetzt (noch nicht in GitHub gespeichert).",
+    );
+  });
+
+  unlockBtn?.addEventListener("click", () => {
+    const value = passwordInput?.value ?? "";
+    if (value !== EDITOR_PASSWORD) {
+      showLockMessage("Falsches Passwort.");
+      return;
+    }
+
+    sessionStorage.setItem(SESSION_UNLOCK_KEY, "1");
+    showLockMessage("Entsperrt.", false);
+    unlockEditor();
+  });
+
+  passwordInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      unlockBtn?.click();
+    }
+  });
+
+  if (sessionStorage.getItem(SESSION_UNLOCK_KEY) === "1") {
+    unlockEditor();
+  }
+</script>

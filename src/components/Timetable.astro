@@ -2,42 +2,13 @@
 import { Image } from "astro:assets";
 import angelImage from "../assets/kneipi_engel_transparent.png";
 import logoImage from "../assets/kneipi_damour_transparent.png";
+import schedule from "../data/schedule.json";
 
 interface TimeSlot {
   time: string;
   event: string;
   subpoints?: string[];
 }
-
-const schedule: TimeSlot[] = [
-  { time: "10:00", event: "Lorem ipsum dolor sit amet" },
-  { time: "12:30", event: "Consectetur adipiscing elit" },
-  {
-    time: "14:30",
-    event: "Sed do eiusmod tempor incididunt",
-    subpoints: [
-      "Ut labore et dolore magna",
-      "Aliqua ut enim ad minim",
-      "Veniam quis nostrud?",
-    ],
-  },
-  {
-    time: "15:00",
-    event: "Exercitation ullamco laboris",
-    subpoints: [
-      "Nisi ut aliquip ex ea commodo",
-      "Consequat duis aute irure?",
-      "Dolor in reprehenderit",
-    ],
-  },
-  { time: "16:00", event: "Voluptate velit esse cillum?" },
-  {
-    time: "16:15",
-    event: "Excepteur sint occaecat cupidatat non proident",
-  },
-  { time: "18:00", event: "Sunt in culpa qui officia" },
-  { time: "19:00", event: "Deserunt mollit anim id est laborum" },
-];
 
 const angelSrc = angelImage.src;
 ---
@@ -51,7 +22,7 @@ const angelSrc = angelImage.src;
     />
   </div>
 
-  <div class="flex flex-col">
+  <div id="schedule-list" data-angel-src={angelSrc} class="flex flex-col">
     {
       schedule.map((slot) => (
         <div
@@ -100,7 +71,6 @@ const angelSrc = angelImage.src;
 
 <script>
   function updateIndicator() {
-    //mock 14:45
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 

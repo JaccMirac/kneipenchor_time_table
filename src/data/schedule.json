@@ -1,0 +1,44 @@
+[
+  {
+    "time": "10:00",
+    "event": "Lorem ipsum dolor sit amet"
+  },
+  {
+    "time": "12:30",
+    "event": "Consectetur adipiscing elit"
+  },
+  {
+    "time": "14:30",
+    "event": "Sed do eiusmod tempor incididunt",
+    "subpoints": [
+      "Ut labore et dolore magna",
+      "Aliqua ut enim ad minim",
+      "Veniam quis nostrud?"
+    ]
+  },
+  {
+    "time": "15:00",
+    "event": "Exercitation ullamco laboris",
+    "subpoints": [
+      "Nisi ut aliquip ex ea commodo",
+      "Consequat duis aute irure?",
+      "Dolor in reprehenderit"
+    ]
+  },
+  {
+    "time": "16:00",
+    "event": "Voluptate velit esse cillum?"
+  },
+  {
+    "time": "16:15",
+    "event": "Excepteur sint occaecat cupidatat non proident"
+  },
+  {
+    "time": "18:00",
+    "event": "Sunt in culpa qui officia"
+  },
+  {
+    "time": "19:00",
+    "event": "Deserunt mollit anim id est laborum"
+  }
+]
